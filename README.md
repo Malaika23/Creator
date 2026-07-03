@@ -445,24 +445,17 @@ Coverage Goal:
 
 # ☁ Deployment
 
-### Backend Cloud Deployment (Render Blueprint)
-The backend microservices stack is ready for single-click deployment on **Render** via the configured `render.yaml` blueprint:
-* Provisions a managed **PostgreSQL** database and a **Redis** caching instance.
-* Spins up a self-hosted **Kafka** message broker (KRaft mode).
-* Boots Eureka Discovery Server, Config Server, and all core microservices as free-tier web services inside a private network.
+## Vercel Serverless Deployment (React Storefront + Serverless Backend)
+The entire application (both frontend and backend API endpoints) is fully optimized for unified, free deployment on **Vercel**:
+* **Frontend UI:** Built with React + Vite, packaged as optimized static files.
+* **Serverless Backend:** Ported to event-driven Node.js Serverless Functions inside the `frontend/api/` directory (serving `/api/products`, `/api/orders`, `/api/auth`, and `/api/assistant`).
 
-To deploy:
-1. Log into your Render dashboard, click **New > Blueprint**, and select this repository.
-2. Click **Apply** to provision all services.
-3. Save the public URL generated for your `api-gateway` service (e.g. `https://api-gateway.onrender.com`).
-
-### Frontend Storefront Deployment (Vercel)
-The React + Vite storefront UI in `/frontend` can be deployed directly to **Vercel**:
-1. Go to Vercel and import this repository.
-2. In the setup, edit the **Root Directory** and select the **`frontend`** directory.
-3. Add the **Environment Variable**:
-   * `VITE_API_GATEWAY_URL` = `<your-public-render-api-gateway-url>`
-4. Click **Deploy** to publish the storefront.
+### Steps to Deploy:
+1. Go to [vercel.com/new/import](https://vercel.com/new/import) and import this repository.
+2. In the configuration settings:
+   * Edit the **Root Directory** and select the **`frontend`** directory.
+   * Vercel will automatically recognize the Vite framework preset.
+3. Click **Deploy**. Vercel will compile your React UI and deploy the serverless backend functions under the `/api/*` paths on the same domain.
 
 ---
 
