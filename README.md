@@ -445,26 +445,24 @@ Coverage Goal:
 
 # ☁ Deployment
 
-Containerized using Docker.
+### Backend Cloud Deployment (Render Blueprint)
+The backend microservices stack is ready for single-click deployment on **Render** via the configured `render.yaml` blueprint:
+* Provisions a managed **PostgreSQL** database and a **Redis** caching instance.
+* Spins up a self-hosted **Kafka** message broker (KRaft mode).
+* Boots Eureka Discovery Server, Config Server, and all core microservices as free-tier web services inside a private network.
 
-Orchestrated with Kubernetes.
+To deploy:
+1. Log into your Render dashboard, click **New > Blueprint**, and select this repository.
+2. Click **Apply** to provision all services.
+3. Save the public URL generated for your `api-gateway` service (e.g. `https://api-gateway.onrender.com`).
 
-Pipeline:
-
-```plaintext
-Code → Build → Test → Security Scan → Dockerize → Deploy
-```
-
-CI/CD:
-
-* GitHub Actions
-* Jenkins
-
-Deployment Environments:
-
-* Local
-* Staging
-* Production
+### Frontend Storefront Deployment (Vercel)
+The React + Vite storefront UI in `/frontend` can be deployed directly to **Vercel**:
+1. Go to Vercel and import this repository.
+2. In the setup, edit the **Root Directory** and select the **`frontend`** directory.
+3. Add the **Environment Variable**:
+   * `VITE_API_GATEWAY_URL` = `<your-public-render-api-gateway-url>`
+4. Click **Deploy** to publish the storefront.
 
 ---
 
@@ -494,25 +492,25 @@ Availability Goal:
 ```bash
 ecommerce-platform/
 │
-├── api-gateway/
-├── discovery-service/
-├── config-server/
-├── user-service/
-├── product-service/
-├── inventory-service/
-├── cart-service/
-├── checkout-service/
-├── order-service/
-├── payment-service/
-├── notification-service/
-├── recommendation-service/
+├── frontend/                  # React + Vite Storefront UI (Vercel)
+├── api-gateway/               # Spring Cloud Gateway
+├── eureka-server/             # Eureka Discovery Server
+├── config-server/             # Config Server
+├── user-service/              # User Profile & Security service
+├── product-service/           # Catalog Management service
+├── inventory-service/         # Real-time Stock tracking service
+├── cart-service/              # Redis-backed Cart service
+├── order-service/             # Saga-orchestrated Orders service
+├── payment-service/           # Transactions & Webhooks service
+├── notification-service/      # SMS/Email Notifications service
+├── ai-service/                # Ollama Recommendation & Chat service
 │
-├── docker/
-├── k8s/
-├── monitoring/
-└── docs/
+├── render.yaml                # Single-click Render Blueprint definition
+├── docker/                    # Local Docker configuration & init scripts
+├── k8s/                       # Kubernetes deployment configurations
+├── monitoring/                # Prometheus & Grafana configurations
+└── docs/                      # Technical design & documentation
 ```
-
 ---
 
 # 🎯 Engineering Goals
