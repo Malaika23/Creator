@@ -1,0 +1,355 @@
+databases:
+  - name: ecommerce-db
+    plan: free
+    databaseName: ecommerce
+    user: postgres
+
+services:
+  # 1. Redis Caching Service
+  - type: redis
+    name: ecommerce-redis
+    plan: free
+    ipAllowList: []
+
+  # 2. Apache Kafka Service (KRaft Mode)
+  - type: pserv
+    name: kafka
+    plan: free
+    runtime: image
+    image: apache/kafka:latest
+    port: 9092
+    envVars:
+      - key: KAFKA_NODE_ID
+        value: "1"
+      - key: KAFKA_PROCESS_ROLES
+        value: "broker,controller"
+      - key: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+        value: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
+      - key: KAFKA_LISTENERS
+        value: "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
+      - key: KAFKA_ADVERTISED_LISTENERS
+        value: "PLAINTEXT://kafka:9092"
+      - key: KAFKA_CONTROLLER_LISTENER_NAMES
+        value: "CONTROLLER"
+      - key: KAFKA_CONTROLLER_QUORUM_VOTERS
+        value: "1@kafka:9093"
+      - key: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+        value: "1"
+      - key: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
+        value: "1"
+      - key: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR
+        value: "1"
+      - key: KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS
+        value: "0"
+      - key: CLUSTER_ID
+        value: "MkU3OEVBNTcwNTJENDM2Qk"
+      - key: KAFKA_JVM_PERFORMANCE_OPTS
+        value: "-Xmx256m -Xms256m"
+
+  # 3. Service Discovery (Eureka Server)
+  - type: pserv
+    name: eureka-server
+    plan: free
+    env: docker
+    dockerfilePath: eureka-server/Dockerfile
+    dockerContext: .
+    port: 8761
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+
+  # 4. Centralized Configuration (Config Server)
+  - type: pserv
+    name: config-server
+    plan: free
+    env: docker
+    dockerfilePath: config-server/Dockerfile
+    dockerContext: .
+    port: 8888
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: EUREKA_SERVER_URL
+        value: http://eureka-server:8761/eureka/
+      - key: PREFER_IP_ADDRESS
+        value: "false"
+
+  # 5. Core Services
+  - type: pserv
+    name: user-service
+    plan: free
+    env: docker
+    dockerfilePath: user-service/Dockerfile
+    dockerContext: .
+    port: 8081
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: CONFIG_SERVER_URL
+        value: http://config-server:8888
+      - key: EUREKA_SERVER_URL
+        value: http://eureka-server:8761/eureka/
+      - key: PREFER_IP_ADDRESS
+        value: "false"
+      - key: DB_HOST
+        fromDatabase:
+          name: ecommerce-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: ecommerce-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: ecommerce-db
+          property: database
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: ecommerce-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: ecommerce-db
+          property: password
+
+  - type: pserv
+    name: product-service
+    plan: free
+    env: docker
+    dockerfilePath: product-service/Dockerfile
+    dockerContext: .
+    port: 8082
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: CONFIG_SERVER_URL
+        value: http://config-server:8888
+      - key: EUREKA_SERVER_URL
+        value: http://eureka-server:8761/eureka/
+      - key: PREFER_IP_ADDRESS
+        value: "false"
+      - key: DB_HOST
+        fromDatabase:
+          name: ecommerce-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: ecommerce-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: ecommerce-db
+          property: database
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: ecommerce-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: ecommerce-db
+          property: password
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: ecommerce-redis
+          property: connectionString
+
+  - type: pserv
+    name: inventory-service
+    plan: free
+    env: docker
+    dockerfilePath: inventory-service/Dockerfile
+    dockerContext: .
+    port: 8083
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: CONFIG_SERVER_URL
+        value: http://config-server:8888
+      - key: EUREKA_SERVER_URL
+        value: http://eureka-server:8761/eureka/
+      - key: PREFER_IP_ADDRESS
+        value: "false"
+      - key: DB_HOST
+        fromDatabase:
+          name: ecommerce-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: ecommerce-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: ecommerce-db
+          property: database
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: ecommerce-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: ecommerce-db
+          property: password
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: ecommerce-redis
+          property: connectionString
+      - key: KAFKA_BOOTSTRAP_SERVERS
+        value: kafka:9092
+
+  - type: pserv
+    name: cart-service
+    plan: free
+    env: docker
+    dockerfilePath: cart-service/Dockerfile
+    dockerContext: .
+    port: 8084
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: CONFIG_SERVER_URL
+        value: http://config-server:8888
+      - key: EUREKA_SERVER_URL
+        value: http://eureka-server:8761/eureka/
+      - key: PREFER_IP_ADDRESS
+        value: "false"
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: ecommerce-redis
+          property: connectionString
+
+  - type: pserv
+    name: order-service
+    plan: free
+    env: docker
+    dockerfilePath: order-service/Dockerfile
+    dockerContext: .
+    port: 8085
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: CONFIG_SERVER_URL
+        value: http://config-server:8888
+      - key: EUREKA_SERVER_URL
+        value: http://eureka-server:8761/eureka/
+      - key: PREFER_IP_ADDRESS
+        value: "false"
+      - key: DB_HOST
+        fromDatabase:
+          name: ecommerce-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: ecommerce-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: ecommerce-db
+          property: database
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: ecommerce-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: ecommerce-db
+          property: password
+      - key: KAFKA_BOOTSTRAP_SERVERS
+        value: kafka:9092
+
+  - type: pserv
+    name: payment-service
+    plan: free
+    env: docker
+    dockerfilePath: payment-service/Dockerfile
+    dockerContext: .
+    port: 8086
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: CONFIG_SERVER_URL
+        value: http://config-server:8888
+      - key: EUREKA_SERVER_URL
+        value: http://eureka-server:8761/eureka/
+      - key: PREFER_IP_ADDRESS
+        value: "false"
+      - key: DB_HOST
+        fromDatabase:
+          name: ecommerce-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: ecommerce-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: ecommerce-db
+          property: database
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: ecommerce-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: ecommerce-db
+          property: password
+      - key: KAFKA_BOOTSTRAP_SERVERS
+        value: kafka:9092
+
+  - type: pserv
+    name: notification-service
+    plan: free
+    env: docker
+    dockerfilePath: notification-service/Dockerfile
+    dockerContext: .
+    port: 8087
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: CONFIG_SERVER_URL
+        value: http://config-server:8888
+      - key: EUREKA_SERVER_URL
+        value: http://eureka-server:8761/eureka/
+      - key: PREFER_IP_ADDRESS
+        value: "false"
+      - key: KAFKA_BOOTSTRAP_SERVERS
+        value: kafka:9092
+
+  - type: pserv
+    name: ai-service
+    plan: free
+    env: docker
+    dockerfilePath: ai-service/Dockerfile
+    dockerContext: .
+    port: 8088
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: CONFIG_SERVER_URL
+        value: http://config-server:8888
+      - key: EUREKA_SERVER_URL
+        value: http://eureka-server:8761/eureka/
+      - key: PREFER_IP_ADDRESS
+        value: "false"
+      - key: OLLAMA_BASE_URL
+        value: http://ollama-service:11434
+
+  # 6. API Gateway (Public Gateway Service)
+  - type: web
+    name: api-gateway
+    plan: free
+    env: docker
+    dockerfilePath: api-gateway/Dockerfile
+    dockerContext: .
+    port: 8080
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: CONFIG_SERVER_URL
+        value: http://config-server:8888
+      - key: EUREKA_SERVER_URL
+        value: http://eureka-server:8761/eureka/
+      - key: PREFER_IP_ADDRESS
+        value: "false"

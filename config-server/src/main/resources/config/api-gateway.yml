@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 spring:
   cloud:
@@ -40,6 +40,14 @@ spring:
           predicates:
             - Path=/api/v1/recommendations/**, /api/v1/assistant/**, /api/v1/search/**
 
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+  instance:
+    prefer-ip-address: ${PREFER_IP_ADDRESS:true}
+    hostname: ${RENDER_SERVICE_NAME:localhost}
+
 jwt:
-  secret: 9a4f2c8d3b7a5e1f9c8b7d6a5e4f3c2b1a0d9e8f7c6b5a4f3e2d1c0b9a8f7e6d # 256-bit key for HMAC
-  expiration: 86400000 # 24 Hours
+  secret: ${JWT_SECRET:9a4f2c8d3b7a5e1f9c8b7d6a5e4f3c2b1a0d9e8f7c6b5a4f3e2d1c0b9a8f7e6d}
+  expiration: ${JWT_EXPIRATION:86400000}

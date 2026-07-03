@@ -1,18 +1,19 @@
 server:
-  port: 8088
+  port: ${PORT:8088}
 
 spring:
   ai:
     ollama:
-      base-url: http://localhost:11434
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
       chat:
-        model: llama3
+        model: ${OLLAMA_CHAT_MODEL:llama3}
       embedding:
-        model: all-minilm
+        model: ${OLLAMA_EMBEDDING_MODEL:all-minilm}
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
   instance:
-    prefer-ip-address: true
+    prefer-ip-address: ${PREFER_IP_ADDRESS:true}
+    hostname: ${RENDER_SERVICE_NAME:localhost}

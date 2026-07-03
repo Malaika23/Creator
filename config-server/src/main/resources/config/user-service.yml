@@ -1,11 +1,11 @@
 server:
-  port: 8081
+  port: ${PORT:8081}
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/ecommerce_user
-    username: postgres
-    password: password
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:ecommerce_user}}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:password}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -19,9 +19,10 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
   instance:
-    prefer-ip-address: true
+    prefer-ip-address: ${PREFER_IP_ADDRESS:true}
+    hostname: ${RENDER_SERVICE_NAME:localhost}
 
 jwt:
   secret: 9a4f2c8d3b7a5e1f9c8b7d6a5e4f3c2b1a0d9e8f7c6b5a4f3e2d1c0b9a8f7e6d
