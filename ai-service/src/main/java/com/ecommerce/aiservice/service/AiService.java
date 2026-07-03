@@ -7,7 +7,7 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.embedding.EmbeddingModel;
-import org.springframework.ai.vectorstore.InMemoryVectorStore;
+import org.springframework.ai.vectorstore.SimpleVectorStore;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +23,7 @@ public class AiService {
 
     private final ChatModel chatModel;
     private final EmbeddingModel embeddingModel;
-    private InMemoryVectorStore vectorStore;
+    private SimpleVectorStore vectorStore;
     private boolean isOllamaAvailable = false;
 
     // Use constructor injection, letting them be optional or catching initialization exceptions
@@ -37,7 +37,7 @@ public class AiService {
         try {
             // Verify connection by calling embedding model with a dummy string
             embeddingModel.embed("health check");
-            this.vectorStore = new InMemoryVectorStore(embeddingModel);
+            this.vectorStore = new SimpleVectorStore(embeddingModel);
             this.isOllamaAvailable = true;
             log.info("Successfully connected to local Ollama AI model registry.");
             
@@ -111,7 +111,7 @@ public class AiService {
                 Map.of("name", "Silk Wedding Dress", "price", 4500.00))
         );
         vectorStore.accept(seedDocs);
-        log.info("Seeded InMemoryVectorStore with {} default catalog embeddings.", seedDocs.size());
+        log.info("Seeded SimpleVectorStore with {} default catalog embeddings.", seedDocs.size());
     }
 
     private List<Map<String, Object>> getSimulatedSearch(String query) {
