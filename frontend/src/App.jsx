@@ -24,11 +24,11 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isBackendConnected, setIsBackendConnected] = useState(false);
 
-  const API_GATEWAY = import.meta.env.VITE_API_GATEWAY_URL || "http://localhost:8080";
+  const API_URL = "/api";
 
   // Try to load products from Backend API
   useEffect(() => {
-    fetch(`${API_GATEWAY}/api/v1/products`)
+    fetch(`${API_URL}/products`)
       .then(res => {
         if (!res.ok) throw new Error("API not available");
         return res.json();
@@ -43,7 +43,7 @@ export default function App() {
         console.warn("Using mock products fallback:", err.message);
         setIsBackendConnected(false);
       });
-  }, [API_GATEWAY]);
+  }, []);
 
   const addToCart = (product) => {
     setCart(prevCart => {
@@ -84,7 +84,7 @@ export default function App() {
 
     // If backend is active, try to POST to order service via gateway
     if (isBackendConnected) {
-      fetch(`${API_GATEWAY}/api/v1/orders`, {
+      fetch(`${API_URL}/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderData)
@@ -169,7 +169,7 @@ export default function App() {
       </main>
 
       {/* Floating AI Shopping Assistant */}
-      <AiAssistant products={products} isBackendConnected={isBackendConnected} apiGateway={API_GATEWAY} />
+      <AiAssistant products={products} isBackendConnected={isBackendConnected} apiGateway={API_URL} />
 
       {/* Slide-out Cart */}
       {isCartOpen && (

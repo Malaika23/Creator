@@ -24,7 +24,7 @@ export default function AiAssistant({ products, isBackendConnected, apiGateway }
 
     if (isBackendConnected) {
       // Query the actual backend AI Service endpoint
-      fetch(`${apiGateway}/api/v1/assistant/chat?message=${encodeURIComponent(userText)}`, {
+      fetch(`${apiGateway}/assistant?message=${encodeURIComponent(userText)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       })
